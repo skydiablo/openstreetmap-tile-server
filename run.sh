@@ -3,6 +3,7 @@
 set -x
 
 function createPostgresConfig() {
+  mkdir -p /var/lib/postgresql/12/main
   cp /etc/postgresql/12/main/postgresql.custom.conf.tmpl /etc/postgresql/12/main/conf.d/postgresql.custom.conf
   sudo -u postgres echo "autovacuum = $AUTOVACUUM" >> /etc/postgresql/12/main/conf.d/postgresql.custom.conf
   cat /etc/postgresql/12/main/conf.d/postgresql.custom.conf
