@@ -25,13 +25,16 @@ if [ "$#" -ne 1 ]; then
 fi
 
 if [ "$1" = "import" ]; then
-    # Initialize PostgreSQL
-    createPostgresConfig
+    # Ensure that database directory is in right state
+    mkdir -P /var/lib/postgresql/12/main
+    chown postgres:postgres -R /var/lib/postgresql
     if [ ! -f /var/lib/postgresql/12/main/PG_VERSION ]; then
         echo "Initializing postgres cluster"
-		sudo rm /var/lib/postgresql/12/main/* -fr
         sudo -u postgres /usr/lib/postgresql/12/bin/pg_ctl -D /var/lib/postgresql/12/main/ initdb -o "--locale C.UTF-8" || exit 1
     fi
+
+    # Initialize PostgreSQL
+    createPostgresConfig
     service postgresql start
     sudo -u postgres createuser renderer
     sudo -u postgres createdb -E UTF8 -O renderer gis
@@ -43,19 +46,19 @@ if [ "$1" = "import" ]; then
 
     # Download Luxembourg as sample if no data is provided
     if [ ! -f /data.osm.pbf ] && [ -z "$DL_PBF" ]; then
-		echo "WARNING: No import file at /data.osm.pbf, so importing Luxembourg as example..."
-		DL_PBF="http://download.geofabrik.de/europe/luxembourg-latest.osm.pbf"
-		DL_PBF_POLY="http://download.geofabrik.de/europe/luxembourg.poly"
+        echo "WARNING: No import file at /data.osm.pbf, so importing Luxembourg as example..."
+        DL_PBF="http://download.geofabrik.de/europe/luxembourg-latest.osm.pbf"
+        DL_PBF_POLY="http://download.geofabrik.de/europe/luxembourg.poly"
     fi
-	
-	if [ -n "$DL_PBF" ]; then
-		echo "INFO: Download PBF file: $DL_PBF"
-		wget -nv "$DL_PBF" -O /data.osm.pbf
-		if [ -n "$DL_PBF_POLY" ]; then
-			echo "INFO: Download PBF-POLY file: $DL_PBF_POLY"
-			wget -nv "$DL_PBF_POLY" -O /data.poly
-		fi
-	fi
+    
+    if [ -n "$DL_PBF" ]; then
+        echo "INFO: Download PBF file: $DL_PBF"
+        wget -nv "$DL_PBF" -O /data.osm.pbf
+        if [ -n "$DL_PBF_POLY" ]; then
+            echo "INFO: Download PBF-POLY file: $DL_PBF_POLY"
+            wget -nv "$DL_PBF_POLY" -O /data.poly
+        fi
+    fi
 
     if [ "$UPDATES" = "enabled" ]; then
         # determine and set osmosis_replication_timestamp (for consecutive updates)
