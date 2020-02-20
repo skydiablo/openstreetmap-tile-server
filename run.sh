@@ -26,7 +26,7 @@ fi
 
 if [ "$1" = "import" ]; then
     # Ensure that database directory is in right state
-    mkdir -P /var/lib/postgresql/12/main
+    mkdir -p /var/lib/postgresql/12/main
     chown postgres:postgres -R /var/lib/postgresql
     if [ ! -f /var/lib/postgresql/12/main/PG_VERSION ]; then
         echo "Initializing postgres cluster"
