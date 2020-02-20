@@ -28,7 +28,7 @@ if [ "$1" = "import" ]; then
     # Ensure that database directory is in right state
     mkdir -p /var/lib/postgresql/12/main
     chown postgres:postgres -R /var/lib/postgresql
-    if [ ! -f /var/lib/postgresql/12/main/PG_VERSION ]; then
+    if [ "$SKIP_INIT_DB" != "true"] && [ ! -f /var/lib/postgresql/12/main/PG_VERSION ]; then
         echo "Initializing postgres cluster"
         sudo -u postgres /usr/lib/postgresql/12/bin/pg_ctl -D /var/lib/postgresql/12/main/ initdb -o "--locale C.UTF-8"
     fi
