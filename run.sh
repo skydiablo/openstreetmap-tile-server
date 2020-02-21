@@ -5,6 +5,9 @@ set -x
 function createPostgresConfig() {
   cp /etc/postgresql/12/main/postgresql.custom.conf.tmpl /etc/postgresql/12/main/conf.d/postgresql.custom.conf
   sudo -u postgres echo "autovacuum = $AUTOVACUUM" >> /etc/postgresql/12/main/conf.d/postgresql.custom.conf
+  if [ -n "$PQ_HUGE_PAGES" ]; then
+    sudo -u postgres echo "huge_pages = $PQ_HUGE_PAGES" >> /etc/postgresql/12/main/conf.d/postgresql.custom.conf
+  fi
   cat /etc/postgresql/12/main/conf.d/postgresql.custom.conf
 }
 
@@ -25,10 +28,8 @@ fi
 
 if [ "$1" = "import" ]; then
     # Ensure that database directory is in right state
-    mkdir -p /var/lib/postgresql/12/main
     chown postgres:postgres -R /var/lib/postgresql
-    if [ "$SKIP_INIT_DB" != "true"] && [ ! -f /var/lib/postgresql/12/main/PG_VERSION ]; then
-        echo "Initializing postgres cluster"
+    if [ ! -f /var/lib/postgresql/12/main/PG_VERSION ]; then
         sudo -u postgres /usr/lib/postgresql/12/bin/pg_ctl -D /var/lib/postgresql/12/main/ initdb -o "--locale C.UTF-8"
     fi
 
@@ -44,18 +45,18 @@ if [ "$1" = "import" ]; then
     setPostgresPassword
 
     # Download Luxembourg as sample if no data is provided
-    if [ ! -f /data.osm.pbf ] && [ -z "$DL_PBF" ]; then
+    if [ ! -f /data.osm.pbf ] && [ -z "$DOWNLOAD_PBF" ]; then
         echo "WARNING: No import file at /data.osm.pbf, so importing Luxembourg as example..."
-        DL_PBF="http://download.geofabrik.de/europe/luxembourg-latest.osm.pbf"
-        DL_PBF_POLY="http://download.geofabrik.de/europe/luxembourg.poly"
+        DOWNLOAD_PBF="http://download.geofabrik.de/europe/luxembourg-latest.osm.pbf"
+        DOWNLOAD_POLY="http://download.geofabrik.de/europe/luxembourg.poly"
     fi
-    
-    if [ -n "$DL_PBF" ]; then
-        echo "INFO: Download PBF file: $DL_PBF"
-        wget -nv "$DL_PBF" -O /data.osm.pbf
-        if [ -n "$DL_PBF_POLY" ]; then
-            echo "INFO: Download PBF-POLY file: $DL_PBF_POLY"
-            wget -nv "$DL_PBF_POLY" -O /data.poly
+
+    if [ -n "$DOWNLOAD_PBF" ]; then
+        echo "INFO: Download PBF file: $DOWNLOAD_PBF"
+        wget -nv "$DOWNLOAD_PBF" -O /data.osm.pbf
+        if [ -n "$DOWNLOAD_POLY" ]; then
+            echo "INFO: Download PBF-POLY file: $DOWNLOAD_POLY"
+            wget -nv "$DOWNLOAD_POLY" -O /data.poly
         fi
     fi
 
