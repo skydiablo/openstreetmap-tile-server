@@ -5,6 +5,9 @@ set -x
 function createPostgresConfig() {
   cp /etc/postgresql/12/main/postgresql.custom.conf.tmpl /etc/postgresql/12/main/conf.d/postgresql.custom.conf
   sudo -u postgres echo "autovacuum = $AUTOVACUUM" >> /etc/postgresql/12/main/conf.d/postgresql.custom.conf
+  if [ -n "$PQ_HUGE_PAGES" ]; then
+    sudo -u postgres echo "huge_pages = $PQ_HUGE_PAGES" >> /etc/postgresql/12/main/conf.d/postgresql.custom.conf
+  fi
   cat /etc/postgresql/12/main/conf.d/postgresql.custom.conf
 }
 
